@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-# October_hub
-一个个人博客的前端页面
-=======
 # October_blog
 
 This template should help get you started developing with Vue 3 in Vite.
@@ -42,4 +38,3 @@ npm run dev
 ```sh
 npm run build
 ```
->>>>>>> master
