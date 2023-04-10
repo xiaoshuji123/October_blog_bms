@@ -1,8 +1,8 @@
 <script setup lang="ts"></script>
 
 <template>
-	<div id="app">
-		<router-view></router-view>
+	<div class="Login">
+		<h2>login</h2>
 	</div>
 </template>
 
