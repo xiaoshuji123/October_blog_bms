@@ -1,31 +1,21 @@
-<script setup lang="ts">
-import LoginBgc from '@/assets/svg/LoginBgc.vue';
-import { reactive, ref } from 'vue';
-const isRemPwd = ref(false);
-const form = reactive({
-	name: '',
-	password: ''
-});
-
-const handelBtnChange = () => {
-	console.log(isRemPwd.value);
-};
-
-const handelLogin = () => {};
-</script>
-
 <template>
 	<div class="Login">
 		<LoginBgc></LoginBgc>
 		<div class="panel">
 			<h2>后台管理系统</h2>
 			<div class="content">
-				<el-form :model="form" label-position="left" label-width="auto">
+				<el-form
+					:model="form"
+					:rules="rules"
+					label-position="left"
+					label-width="auto"
+					ref="elFormRef"
+				>
 					<el-form-item label="账号" prop="name" required>
 						<el-input v-model="form.name" />
 					</el-form-item>
 					<el-form-item label="密码" prop="password" required>
-						<el-input v-model="form.password" />
+						<el-input v-model="form.password" type="password" show-password />
 					</el-form-item>
 				</el-form>
 				<el-checkbox v-model="isRemPwd" label="记住密码" size="large" @change="handelBtnChange" />
@@ -36,7 +26,49 @@ const handelLogin = () => {};
 		</div>
 	</div>
 </template>
+<script setup lang="ts">
+import { reactive, ref } from 'vue';
+import LoginBgc from '@/assets/svg/LoginBgc.vue';
+import useLogin from '@/store/login';
+import { localCache } from '@/utils/cache';
+import type { ElForm } from 'element-plus';
 
+const isRemPwd = ref(localCache.getCache('isRemPwd'));
+const form = reactive({
+	name: localCache.getCache('name') ?? '',
+	password: localCache.getCache('password') ?? ''
+});
+const elFormRef = ref<InstanceType<typeof ElForm>>();
+const rules = {
+	name: [
+		{ required: true, message: '请输入账号', trigger: 'blur' },
+		{ pattern: /^[a-z0-9]{6,20}$/, message: '长度为6-20', trigger: 'change' }
+	],
+	password: [{ required: true, message: '请输入密码', trigger: 'blur' }]
+};
+
+const handelBtnChange = () => {
+	if (isRemPwd.value) {
+		localCache.setCache('name', form.name);
+		localCache.setCache('password', form.password);
+		localCache.setCache('isRemPwd', isRemPwd.value);
+	} else {
+		localCache.removeCache('name');
+		localCache.removeCache('password');
+		localCache.removeCache('isRemPwd');
+	}
+};
+const loginStore = useLogin();
+
+const handelLogin = () => {
+	elFormRef.value?.validate((valid) => {
+		console.log(valid);
+		if (valid) {
+			loginStore.loginAction(form);
+		}
+	});
+};
+</script>
 <style lang="less" scoped>
 .Login {
 	width: 100vw;

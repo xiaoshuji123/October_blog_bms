@@ -1,22 +1,7 @@
+import { ElMessage } from 'element-plus';
 import axios from 'axios';
-import type {
-	AxiosInstance,
-	AxiosRequestConfig,
-	InternalAxiosRequestConfig,
-	AxiosResponse,
-	AxiosRequestHeaders
-} from 'axios';
-
-interface InstanceInterceptors<T = AxiosResponse> {
-	requestSuccessFn?: (config: any) => any;
-	requestFailFn?: (err: any) => any;
-	responseSuccessFn?: (res: T) => T;
-	responseFailFn?: (err: any) => any;
-}
-
-interface MyRequestConfig<T = AxiosResponse> extends AxiosRequestConfig {
-	interceptor?: InstanceInterceptors<T>;
-}
+import type { AxiosInstance } from 'axios';
+import type { MyRequestConfig } from './type';
 
 class MyRequest {
 	instance: AxiosInstance;
@@ -33,9 +18,15 @@ class MyRequest {
 
 		this.instance.interceptors.response.use(
 			(response) => {
-				return response;
+				return response.data;
 			},
-			(err) => {}
+			(err) => {
+				console.log(err);
+				ElMessage({
+					message: err.response.data,
+					type: 'error'
+				});
+			}
 		);
 
 		/* 实例拦截器 */
@@ -61,19 +52,19 @@ class MyRequest {
 				.then((res) => {
 					if (config.interceptor?.responseSuccessFn) {
 						res = config.interceptor?.responseSuccessFn(res);
-						resolve(res);
 					}
+					resolve(res);
 				})
 				.catch((err) => {
 					reject(err);
 				});
 		});
 	}
-	get<T>(config: MyRequestConfig<T>) {
-		this.request<T>({ method: 'GET', ...config });
+	get<T = any>(config: MyRequestConfig<T>) {
+		return this.request({ method: 'GET', ...config });
 	}
-	post<T>(config: MyRequestConfig<T>) {
-		this.request<T>({ method: 'POST', ...config });
+	post<T = any>(config: MyRequestConfig<T>) {
+		return this.request({ method: 'POST', ...config });
 	}
 }
 
