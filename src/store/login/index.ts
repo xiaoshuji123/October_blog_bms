@@ -1,17 +1,21 @@
-import { TOKEN } from '@/global/constants';
+import { TOKEN, USERINFO, USERMENUS } from '@/global/constants';
 import router from '@/router';
 import { getUserInfoById, getUserMenu, login } from '@/service/login';
 import type { Ilogin } from '@/types';
 import { localCache } from '@/utils/cache';
 import { defineStore } from 'pinia';
 
-/* 下面的token变量进行抽取常量 */
+interface IloginState {
+	userInfo: any;
+	userMenus: any;
+	token: string;
+}
 
 const useLogin = defineStore('login', {
-	state() {
+	state(): IloginState {
 		return {
-			userInfo: {},
-			userMenus: {},
+			userInfo: localCache.getCache(USERINFO) ?? {},
+			userMenus: localCache.getCache(USERMENUS) ?? {},
 			token: localCache.getCache(TOKEN) ?? ''
 		};
 	},
@@ -28,12 +32,14 @@ const useLogin = defineStore('login', {
 				localCache.setCache(TOKEN, this.token);
 
 				// 2.获取用户的详细信息
-				const userInfo = await getUserInfoById(id);
-				this.userInfo = userInfo;
+				const userInfoRes = await getUserInfoById(id);
+				this.userInfo = userInfoRes.data;
 
 				// 3.获取用户的菜单权限
-				const menus = await getUserMenu(id);
-				this.userMenus = menus;
+				const menusRes = await getUserMenu(id);
+				this.userMenus = menusRes.data;
+				localCache.setCache(USERINFO, this.userInfo);
+				localCache.setCache(USERMENUS, this.userMenus);
 
 				//跳转路由到main中
 				router.push({
